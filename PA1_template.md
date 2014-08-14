@@ -12,10 +12,10 @@ Load the data
 ```r
 data <- read.csv("activity.csv")
 ```
-Convert the **date** feature from *factor* into a *Date* and the **interval** feature from *int* to *factor*
+Convert the **date** feature from *factor* into a *Date*
 
 ```r
-data <- transform(data,date=as.Date(date),interval=as.factor(interval))
+data <- transform(data,date=as.Date(date))
 ```
 ## What is mean total number of steps taken per day?
 Calculate the total number of steps per day
@@ -54,13 +54,13 @@ median(steps_per_day$steps,na.rm=TRUE)
 Calculate the average number of steps for each interval accross all days
 
 ```r
-avg_steps_per_interval <- aggregate(list(steps=data$steps),by=list(interval=data$interval),FUN=mean,na.rm=TRUE)
+avg_steps_per_interval <- aggregate(list(avg_steps=data$steps),by=list(interval=data$interval),FUN=mean,na.rm=TRUE)
 ```
 Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
 ```r
 library(lattice)
-xyplot(steps~interval,data=avg_steps_per_interval,type="l",main="Average number of steps per interval")
+xyplot(avg_steps~interval,data=avg_steps_per_interval,type="l",main="Average number of steps per interval",)
 ```
 
 ![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9.png) 
@@ -69,15 +69,59 @@ xyplot(steps~interval,data=avg_steps_per_interval,type="l",main="Average number 
 Find the interval with the maximum number of steps
 
 ```r
-avg_steps_per_interval$interval[which.max(avg_steps_per_interval$steps)]
+avg_steps_per_interval$interval[which.max(avg_steps_per_interval$avg_steps)]
 ```
 
 ```
 ## [1] 835
-## 288 Levels: 0 5 10 15 20 25 30 35 40 45 50 55 100 105 110 115 120 ... 2355
 ```
 ## Imputing missing values
+Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+
+```r
+sum(is.na(data))
+```
+
+```
+## [1] 2304
+```
+Fill in the NAs
+
+```r
+data_nona <- merge(data,avg_steps_per_interval,by.x="interval",by.y="interval")
+data_nona$steps[which(is.na(data_nona$steps))] <- data_nona$avg_steps[which(is.na(data_nona$steps))]
+data_nona <- data_nona[,1:3]
+```
+Calculate the total number of steps per day
+
+```r
+steps_per_day <- aggregate(list(steps=data_nona$steps),by=list(date=data_nona$date),FUN=sum,na.rm=TRUE)
+```
+Plot the histogram 
+
+```r
+hist(steps_per_day$steps,main="Total number of steps per day",xlab="Steps")
+```
+
+![plot of chunk unnamed-chunk-14](figure/unnamed-chunk-14.png) 
 
 
+Calculate the mean number of steps per day
 
+```r
+mean(steps_per_day$steps,na.rm=TRUE)
+```
+
+```
+## [1] 10766
+```
+Calculate the median number of steps per day
+
+```r
+median(steps_per_day$steps,na.rm=TRUE)
+```
+
+```
+## [1] 10766
+```
 ## Are there differences in activity patterns between weekdays and weekends?
