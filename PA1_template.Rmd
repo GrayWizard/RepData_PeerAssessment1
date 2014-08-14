@@ -80,3 +80,17 @@ Calculate the median number of steps per day
 median(steps_per_day$steps,na.rm=TRUE)
 ```
 ## Are there differences in activity patterns between weekdays and weekends?
+Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+```{r}
+data_nona$we <- as.factor(ifelse(weekdays(data_nona$date) %in% c("Saturday","Sunday"), "Weekend", "Weekday")) 
+```
+Calculate the average number of steps for each interval accross all days
+```{r}
+avg_steps_per_interval <- aggregate(list(avg_steps=data_nona$steps),by=list(interval=data_nona$interval,we=data_nona$we),FUN=mean,na.rm=TRUE)
+```
+Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was creating using simulated data:
+```{r}
+library(lattice)
+xyplot(avg_steps~interval|we,data=avg_steps_per_interval,type="l",main="Average number of steps per interval",layout = c(1, 2))
+```
+
